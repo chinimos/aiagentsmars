@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sprite Lab — Averis &amp; Sunbeam</title>
+  <style>
+    body { margin: 0; background: #6cab4f; color: #1c1015; font-family: monospace; }
+    .row { display: flex; gap: 40px; padding: 24px; flex-wrap: wrap; align-items: flex-start; }
+    .cell { background: #5b9543; padding: 12px; border: 2px solid #2c2733; }
+    canvas { image-rendering: pixelated; display: block; }
+    h2 { margin: 0 0 8px; font-size: 14px; }
+    .warn { color: #6b1010; font-weight: bold; white-space: pre; }
+    .grass { background: #6cab4f; }
+  </style>
+</head>
+<body>
+  <div class="row" id="stage"></div>
+  <script>
+  // ===== Averis =====
+  const AVERIS = [
+    ".....KK....KK.....",
+    "....KOK...KOK.....",
+    "....KOKKKKKKOK....",
+    "....KDDDDDDDDK....",
+    "....KDddddddDK....",
+    "....KDRRRRRRDK....",
+    "....KDRSSSSRDK....",
+    "....KDSESSESDK....",
+    "....KDSSSSSSDK....",
+    ".....KKKKKKKK.....",
+    "........SS........",
+    ".....KJJJJJJK.....",
+    ".....KJJOOJJKC....",
+    ".....KJJJJJJKCc...",
+    ".....KBBBBBBKCOc..",
+    ".....KPPPPPPKCOc..",
+    ".....KPPKKPPK.Cc..",
+    ".....KTTKKTTK..c..",
+    ".....KKK..KKK....."
+  ];
+  const AVERIS_PAL = {
+    ".": null, K: "#1c1015",
+    D: "#8a4636", d: "#6b3326",
+    O: "#f0a64f",
+    R: "#3a261d",
+    S: "#e0a86a", E: "#1c1015",
+    J: "#9a423a",
+    C: "#4a3026", c: "#361f17",
+    B: "#5a3826",
+    P: "#4a2c20",
+    T: "#2c1a13"
+  };
+
+  // ===== Sunbeam =====
+  const SUNBEAM = [
+    ".....KKKKKK.....",
+    "....KHHHHHHK....",
+    "...KHHHHHHHHK...",
+    "...KHSSSSSSHK...",
+    "...KHSySSySHK...",
+    "...KHSSSSSSHK...",
+    "...KHHSSSSHHK...",
+    "....KKKKKKKK....",
+    ".......SS.......",
+    "...KWWWWWWWWK...",
+    "...KWWGGGGWWK...",
+    "...KWWWWWWWWK...",
+    "..KWWWWWWWWWWK..",
+    ".KWWBBBBBBWWK...",
+    ".KWBBBBBBBBBWK..",
+    ".KWBBBGBBGBBWK..",
+    "KWBBBBBBBBBBBBWK",
+    "KWBbBBBBBBBBbBWK",
+    "KGGGGGGGGGGGGGGK",
+    "....KOOKKOOK....",
+    "....KKK..KKK...."
+  ];
+  const SUNBEAM_PAL = {
+    ".": null, K: "#5a4634",
+    H: "#e2c489",
+    S: "#f6dcc0",
+    y: "#b9892f",
+    W: "#fdf6e8",
+    B: "#ddc59c", b: "#c2a376",
+    G: "#ecc36a",
+    O: "#efe2c6"
+  };
+
+  // ===== Original chibi (Claude's PERSON sprite) for comparison =====
+  const PERSON = [
+    "....kkkkkk....",
+    "...kHHHHHhk...",
+    "...kHHHHHhk...",
+    "...kHHHHHhk...",
+    "...kHSSSSHk...",
+    "...kSeSSeSk...",
+    "...kSSSSssk...",
+    "...kSSSSssk...",
+    "....kkkkkk....",
+    "......SS......",
+    "...kAAAAAAk...",
+    "..kAAAAAAAAk..",
+    "..kAAAAAaaAk..",
+    "..SkAAAAAakS..",
+    "...kPPPPPPk...",
+    "...kPPkkppk...",
+    "...kPPkkppk...",
+    "...kbbkkbbk...",
+    "...kkk..kkk..."
+  ];
+  const PERSON_PAL = {
+    ".": null, k: "#2c2733",
+    H: "#5a3a2a", h: "#3f281c",
+    S: "#f4c9a0", s: "#d2a780", e: "#2c2733",
+    A: "#e8825c", a: "#a3604a",
+    P: "#3a4a6a", p: "#283449",
+    b: "#5e4026", B: "#42291a"
+  };
+
+  function render(name, rows, pal, scale) {
+    const w = Math.max(...rows.map(r => r.length)), h = rows.length;
+    const cell = document.createElement("div"); cell.className = "cell";
+    const title = document.createElement("h2"); title.textContent = name + "  (" + w + "x" + h + ")";
+    cell.appendChild(title);
+    let warn = "";
+    rows.forEach((r, i) => { if (r.length !== w) warn += "row " + i + " len " + r.length + " (want " + w + ")\n"; });
+    if (warn) { const p = document.createElement("div"); p.className = "warn"; p.textContent = warn; cell.appendChild(p); }
+    const c = document.createElement("canvas"); c.width = w * scale; c.height = h * scale;
+    const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+    for (let y = 0; y < h; y++) for (let x = 0; x < rows[y].length; x++) {
+      const col = pal[rows[y][x]];
+      if (col) { g.fillStyle = col; g.fillRect(x * scale, y * scale, scale, scale); }
+      else if (rows[y][x] !== ".") { g.fillStyle = "#ff00ff"; g.fillRect(x * scale, y * scale, scale, scale); } // missing palette = magenta
+    }
+    cell.appendChild(c);
+    document.getElementById("stage").appendChild(cell);
+  }
+
+  render("OG chibi x14", PERSON, PERSON_PAL, 14);
+  render("Averis x14", AVERIS, AVERIS_PAL, 14);
+  render("Sunbeam x14", SUNBEAM, SUNBEAM_PAL, 14);
+  render("OG x6", PERSON, PERSON_PAL, 6);
+  render("Averis x6", AVERIS, AVERIS_PAL, 6);
+  render("Sunbeam x6", SUNBEAM, SUNBEAM_PAL, 6);
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "pokeagents",
+  "version": "0.1.0",
+  "description": "A HeartGold-style top-down route where pixel agents live like Sims NPCs.",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}

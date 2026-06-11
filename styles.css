@@ -1,0 +1,626 @@
+/* ============================================================
+   Sky Agents — styles
+   Pixel-art UI. Two fonts:
+     "Press Start 2P"  -> headings / labels (chunky, retro)
+     "VT323"           -> body / chat text (readable pixel font)
+   ============================================================ */
+
+:root {
+  --ink:        #0d1018;   /* near-black outline     */
+  --panel-bg:   #1b2233;   /* panel background       */
+  --panel-bg-2: #232c42;   /* lighter panel rows     */
+  --text:       #e9eefb;   /* main text              */
+  --text-dim:   #8b96b4;   /* dim / dormant text     */
+  --coral:      #e8825c;   /* Claude / active accent */
+  --steel:      #586079;   /* dormant accent         */
+  --sky:        #1f2a1c;   /* dark letterbox (grass shadow) */
+  --grass:      #66a84e;   /* overworld grass base    */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--sky);
+  overflow: hidden;
+  font-family: "VT323", ui-monospace, monospace;
+  color: var(--text);
+  -webkit-font-smoothing: none;
+}
+
+/* ---- Stage centers the canvas and holds the HUD ---- */
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game {
+  display: block;
+  image-rendering: pixelated;       /* crisp pixels when scaled up */
+  image-rendering: crisp-edges;
+  background: var(--grass);
+  /* width/height are set by game.js to fit the window */
+}
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute;
+  top: 18px;
+  left: 0; right: 0;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
+#hud h1 {
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(12px, 2.4vw, 22px);
+  letter-spacing: 1px;
+  margin: 0;
+  color: #fff;
+}
+#hud #hint {
+  font-size: clamp(15px, 2vw, 20px);
+  margin: 8px 0 0;
+  color: #eaf6ff;
+  opacity: .9;
+}
+
+#legend {
+  position: absolute;
+  bottom: 14px;
+  left: 0; right: 0;
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+  font-size: clamp(14px, 1.8vw, 18px);
+  color: #f2f8ff;
+  text-shadow: 0 1px 0 rgba(0,0,0,.4);
+  pointer-events: none;
+}
+#legend i.dot {
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-right: 4px;
+  vertical-align: -1px;
+  border: 2px solid var(--ink);
+}
+.dot.active  { background: var(--coral); box-shadow: 0 0 8px var(--coral); }
+.dot.dormant { background: #6c7488; }
+.dot.wild    { background: #d9c49a; }
+.dot.danger  { background: #8e3344; box-shadow: 0 0 8px rgba(142,51,68,.8); }
+
+/* ---- Agent name labels (crisp DOM text over the canvas) ---- */
+#labels {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;     /* let clicks fall through to the canvas */
+  z-index: 5;
+}
+.label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;          /* overwritten per-zoom by game.js */
+  line-height: 1;
+  white-space: nowrap;
+  padding: 4px 6px;
+  background: rgba(8, 12, 22, .72);
+  border: 1px solid var(--ink);
+  color: var(--text-dim);   /* dormant default */
+  transition: transform .08s ease-out;
+}
+.label.active {
+  color: #ffd9c7;
+  background: rgba(8, 12, 22, .82);
+  border-color: var(--coral);
+  box-shadow: 0 0 10px rgba(232, 130, 92, .7);
+}
+.label.npc {
+  color: #aab4cc;
+  border-color: #586079;
+  opacity: .9;
+}
+.label.downed {
+  color: #ff8a8a;
+  border-color: #8e3344;
+  box-shadow: 0 0 10px rgba(142, 51, 68, .7);
+}
+.label.inside { opacity: .55; }
+.label.hover { transform: translate(-50%, -100%) translateY(-3px) scale(1.08); }
+.label.hover::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: -7px;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  border-top-color: var(--ink);
+}
+
+/* ---- Real-time sun/moon clock (top-right; click cycles previews) ---- */
+#clock {
+  position: absolute;
+  top: 16px; right: 16px;
+  z-index: 6;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #fff;
+  background: rgba(8, 12, 22, .72);
+  border: 2px solid var(--ink);
+  padding: 7px 10px;
+  cursor: pointer;
+  user-select: none;
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+}
+#clock:hover { filter: brightness(1.15); }
+#clock #clockIcon { margin-right: 7px; }
+#clock.day     #clockIcon { color: #ffd166; }
+#clock.sunrise #clockIcon { color: #ffc08a; }
+#clock.sunset  #clockIcon { color: #ff9e7d; }
+#clock.night   #clockIcon { color: #bcd0ff; }
+
+/* ---- Agent hotbar (top-left): click a face to pan to them ---- */
+#hotbar {
+  position: absolute;
+  top: 16px; left: 16px;
+  z-index: 7;
+  display: flex;
+  gap: 4px;
+  max-width: 246px;
+  overflow-x: auto;
+  padding: 4px;
+  background: rgba(8, 12, 22, .68);
+  border: 2px solid var(--ink);
+}
+#hotbar::-webkit-scrollbar { height: 5px; }
+#hotbar::-webkit-scrollbar-thumb { background: #3a4663; border: 1px solid var(--ink); }
+#hotbar::-webkit-scrollbar-track { background: transparent; }
+.hb-tile {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px; height: 40px;
+  background: #131a2a;
+  border: 2px solid var(--steel);
+  cursor: pointer;
+}
+.hb-tile:hover { filter: brightness(1.3); }
+.hb-tile.hb-active { border-color: var(--coral); }
+.hb-tile.hb-downed { border-color: #8e3344; box-shadow: 0 0 6px rgba(142,51,68,.8); }
+.hb-tile.hb-inside { opacity: .55; }
+.hb-tile canvas {
+  display: block;
+  width: 30px; height: 28px;
+  image-rendering: pixelated;
+}
+.hb-hp {
+  position: absolute;
+  left: 2px; right: 2px; bottom: 7px;
+  height: 2px;
+  background: rgba(0,0,0,.6);
+}
+.hb-hp i { display: block; height: 2px; background: #74d36c; }
+.hb-area {
+  position: absolute;
+  right: 0; bottom: -1px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  padding: 1px 2px;
+  color: #cfd8f2;
+  background: rgba(8, 12, 22, .8);
+}
+
+/* ---- Area navigation arrows (the road continues!) ---- */
+#areaNav button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 7;
+  display: none;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #ffd9c7;
+  background: rgba(8, 12, 22, .78);
+  border: 2px solid var(--ink);
+  padding: 12px 9px;
+  cursor: pointer;
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+}
+#areaNav #navE { right: 10px; }
+#areaNav #navW { left: 10px; }
+#areaNav #navS { top: auto; bottom: 10px; left: 50%; transform: translateX(-50%); padding: 9px 12px; }
+#areaNav #navN { top: 64px; left: 50%; transform: translateX(-50%); padding: 9px 12px; }
+#areaNav button:hover { filter: brightness(1.25); box-shadow: 0 0 10px rgba(232,130,92,.5); }
+
+/* ---- Spawn buttons (bottom-right): poke the world ---- */
+#spawnbar {
+  position: absolute;
+  right: 10px; bottom: 14px;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#spawnbar button {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #ffb4a0;
+  background: rgba(8, 12, 22, .82);
+  border: 2px solid var(--ink);
+  padding: 9px 10px;
+  cursor: pointer;
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+}
+#spawnbar #spawnFolkBtn { color: #c7e8ff; }
+#spawnbar #sheetBtn { color: #ffe9a8; }
+#spawnbar button:hover { filter: brightness(1.3); box-shadow: 0 0 10px rgba(232,130,92,.5); }
+#spawnbar button:active { transform: translateY(1px); }
+
+/* ---- Big skill-name & level-up floats ---- */
+#fx .float.big {
+  font-size: clamp(18px, 2.4vw, 26px);
+  text-shadow: 0 2px 0 rgba(0,0,0,.8), 0 0 12px rgba(255,209,102,.35);
+  letter-spacing: 1px;
+}
+
+/* ---- Skill tree & summary sheet ---- */
+.tree-btn {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #ffe9a8;
+  background: rgba(20, 26, 40, .9);
+  border: 2px solid var(--ink);
+  padding: 10px 8px;
+  cursor: pointer;
+  text-align: center;
+}
+.tree-btn:hover { filter: brightness(1.3); box-shadow: 0 0 10px rgba(255,209,102,.4); }
+.treewrap { margin: 12px 0 18px; border: 1px solid var(--ink); padding: 10px; background: rgba(8,12,22,.5); }
+.treehead { font-size: 1.25em; margin-bottom: 4px; }
+.xpbar { height: 7px; background: rgba(255,255,255,.08); border: 1px solid var(--ink); margin: 4px 0; }
+.xpbar i { display: block; height: 100%; }
+.treemeta { opacity: .85; font-size: .95em; margin: 2px 0; }
+.treeascii {
+  font-family: "VT323", monospace;
+  font-size: clamp(15px, 1.7vw, 19px);
+  line-height: 1.25;
+  margin: 8px 0 4px;
+  white-space: pre;
+  overflow-x: auto;
+}
+.stnode { cursor: pointer; }
+.stnode.locked { opacity: .4; }
+.stnode.unlocked { color: var(--cc, #ffe9a8); border-bottom: 1px dotted rgba(255,255,255,.3); }
+.stnode.maxed {
+  color: #fff7ea;
+  text-shadow: 0 0 8px var(--cc, #ffd166), 0 0 2px #fff;
+  border-bottom: 1px solid var(--cc, #ffd166);
+}
+.stnode:hover { filter: brightness(1.35); }
+.stevo.on { color: #a8f0c0; }
+.stevo.off { opacity: .4; }
+.skilldetail {
+  border: 1px solid var(--ink);
+  background: rgba(20,26,40,.75);
+  padding: 10px;
+  margin-top: 8px;
+  font-size: 1.05em;
+  line-height: 1.35;
+}
+.skilldetail .sdk { color: #8fb4ff; }
+
+/* ---- Skill detail POPUP: big, readable, one click away ---- */
+#skillpop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(4, 6, 12, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#skillpop.hidden { display: none; }
+#skillpopCard {
+  position: relative;
+  width: min(440px, 86vw);
+  max-height: 76vh;
+  overflow-y: auto;
+  background: #10141f;
+  border: 3px solid var(--accent, #e8825c);
+  box-shadow: 0 0 26px rgba(232,130,92,.45), 0 10px 40px rgba(0,0,0,.6);
+  padding: 18px 20px;
+  font-size: clamp(16px, 1.9vw, 20px);
+  line-height: 1.45;
+}
+#skillpopCard b { font-size: 1.25em; }
+#skillpopCard .sdk { color: #8fb4ff; }
+#skillpopClose {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(232,130,92,.15);
+  border: 2px solid var(--ink);
+  color: #ffd9c7;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+#skillpopClose:hover { filter: brightness(1.4); }
+
+/* ---- Town event log (bottom-left, last few lines) ---- */
+#eventlog {
+  position: absolute;
+  left: 14px; bottom: 14px;
+  z-index: 6;
+  width: min(310px, 42vw);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  font-size: clamp(14px, 1.6vw, 17px);
+  line-height: 1.1;
+}
+#eventlog .ev {
+  background: rgba(8, 12, 22, .68);
+  border: 1px solid var(--ink);
+  padding: 2px 8px 3px;
+  color: #dfe7f8;
+}
+#eventlog .ev.old { opacity: .5; }
+
+/* ---- Floating action text + dialogue bubbles (DOM = crisp text) ---- */
+#fx {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+.float {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-family: "Press Start 2P", monospace;
+  font-size: calc(2.6px * var(--s, 3.5));
+  white-space: nowrap;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+.bubble {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-family: "VT323", ui-monospace, monospace;
+  font-size: calc(4.6px * var(--s, 3.5));
+  line-height: 1;
+  max-width: 190px;
+  background: #fffdf2;
+  color: #2c2733;
+  border: 2px solid var(--ink);
+  padding: 3px 8px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,.35);
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: -6px;
+  margin-left: -3px;
+  border: 3px solid transparent;
+  border-top-color: var(--ink);
+}
+
+/* ============================================================
+   Interaction panel
+   ============================================================ */
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 9, 18, .55);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  padding: 20px;
+}
+#overlay.hidden { display: none; }
+
+#panel {
+  position: relative;
+  width: min(560px, 94vw);
+  background: var(--panel-bg);
+  border: 4px solid var(--ink);
+  /* chunky pixel frame: accent ring + dark outline + hard drop shadow */
+  box-shadow:
+    0 0 0 4px var(--coral),
+    0 0 0 8px var(--ink),
+    10px 10px 0 8px rgba(0,0,0,.45);
+  padding: 22px;
+  animation: pop .12s steps(3, end);
+}
+/* dormant agents get a steel frame instead of coral */
+#panel.dormant {
+  box-shadow:
+    0 0 0 4px var(--steel),
+    0 0 0 8px var(--ink),
+    10px 10px 0 8px rgba(0,0,0,.45);
+}
+
+@keyframes pop {
+  from { transform: translateY(8px) scale(.96); }
+  to   { transform: none; }
+}
+
+/* the panel body scrolls (not #panel itself) so the X button stays pinned */
+#panelBody {
+  max-height: calc(90vh - 90px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+#panelBody::-webkit-scrollbar { width: 10px; }
+#panelBody::-webkit-scrollbar-thumb { background: #3a4663; border: 2px solid var(--ink); }
+#panelBody::-webkit-scrollbar-track { background: var(--panel-bg); }
+
+#closeBtn {
+  position: absolute;
+  top: -14px; right: -14px;
+  width: 34px; height: 34px;
+  background: var(--coral);
+  color: var(--ink);
+  border: 4px solid var(--ink);
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1;
+}
+#closeBtn:hover { filter: brightness(1.1); }
+
+/* ---- Panel content ---- */
+.agent-head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.agent-avatar {
+  width: 84px; height: 84px;
+  flex: 0 0 auto;
+  image-rendering: pixelated;
+  background: #131a2a;
+  border: 3px solid var(--ink);
+}
+.agent-meta h2 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  margin: 2px 0 8px;
+}
+.agent-meta h2.active  { color: var(--coral); text-shadow: 0 0 10px rgba(232,130,92,.6); }
+.agent-meta h2.dormant { color: var(--text-dim); }
+
+.badge {
+  display: inline-block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  padding: 5px 8px;
+  border: 2px solid var(--ink);
+  letter-spacing: 1px;
+}
+.badge.active  { background: var(--coral); color: var(--ink); }
+.badge.dormant { background: var(--steel); color: #cdd4e6; }
+
+.agent-blurb {
+  font-size: 19px;
+  line-height: 1.15;
+  color: var(--text);
+  margin: 12px 0 14px;
+}
+.agent-blurb.dim { color: var(--text-dim); }
+
+/* ---- Sims-style needs / survival stats ---- */
+.needs { margin: 10px 0 4px; }
+.needrow { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+.needrow .nlabel { width: 58px; font-family: "Press Start 2P", monospace; font-size: 8px; color: var(--text-dim); text-transform: capitalize; }
+.needbar { flex: 1; height: 12px; background: var(--panel-bg-2); border: 2px solid var(--ink); }
+.needfill { height: 100%; width: 50%; transition: width .25s linear; }
+.activity { font-size: 17px; color: var(--text-dim); margin: 4px 0 10px; }
+
+/* ---- Survival panel extras (personality, thought, inventory, friends) ---- */
+.persona-badge {
+  display: inline-block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 8px;
+  padding: 4px 7px;
+  margin-left: 6px;
+  border: 2px solid var(--ink);
+  background: var(--panel-bg-2);
+  color: #cfd8f2;
+  letter-spacing: 1px;
+}
+.thought {
+  font-size: 18px;
+  font-style: italic;
+  color: #cfd8f2;
+  margin: 8px 0 2px;
+}
+.kvs { margin: 8px 0 10px; }
+.kvs .kv { display: flex; gap: 8px; font-size: 17px; line-height: 1.25; }
+.kvs .kv .k { color: var(--text-dim); flex: 0 0 96px; }
+.kvs .kv .v { color: var(--text); }
+
+/* downed agent: revive UI */
+.downed-note {
+  font-size: 19px;
+  color: #ff8a8a;
+  margin: 10px 0 6px;
+}
+.revive-btn {
+  display: block;
+  width: 100%;
+  background: var(--coral);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  padding: 12px;
+  margin: 8px 0 4px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.4);
+}
+.revive-btn:hover { filter: brightness(1.12); }
+.revive-warning { font-size: 15px; color: var(--text-dim); margin: 2px 0 8px; }
+
+/* ---- Chat (active agent only) ---- */
+#chatlog {
+  height: 200px;
+  overflow-y: auto;
+  background: var(--panel-bg-2);
+  border: 3px solid var(--ink);
+  padding: 10px;
+  font-size: 20px;
+  line-height: 1.1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.msg { max-width: 85%; padding: 6px 10px; border: 2px solid var(--ink); }
+.msg.you    { align-self: flex-end;   background: #2f3b59; }
+.msg.bot    { align-self: flex-start; background: var(--coral); color: var(--ink); }
+.msg.typing { font-style: italic; opacity: .8; }
+
+#chatform {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+#chatinput {
+  flex: 1;
+  background: var(--panel-bg-2);
+  border: 3px solid var(--ink);
+  color: var(--text);
+  font-family: "VT323", monospace;
+  font-size: 20px;
+  padding: 8px 10px;
+}
+#chatinput:focus { outline: none; border-color: var(--coral); }
+#chatinput:disabled { opacity: .5; }
+
+.send-btn {
+  background: var(--coral);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+.send-btn:hover { filter: brightness(1.1); }
+.send-btn:disabled { background: var(--steel); cursor: not-allowed; }
+
+/* scrollbar */
+#chatlog::-webkit-scrollbar { width: 10px; }
+#chatlog::-webkit-scrollbar-thumb { background: #3a4663; border: 2px solid var(--ink); }
+#chatlog::-webkit-scrollbar-track { background: var(--panel-bg); }

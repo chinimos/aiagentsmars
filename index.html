@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PokeAgents</title>
+
+  <!-- Pixel fonts (fall back to monospace if offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- The world -->
+  <div id="stage">
+    <canvas id="game" width="512" height="288"></canvas>
+
+    <!-- Agent name labels (crisp DOM text, positioned over the canvas) -->
+    <div id="labels"></div>
+
+    <!-- Floating text + dialogue bubbles (crisp DOM text over the canvas) -->
+    <div id="fx"></div>
+
+    <!-- Heads-up display (drawn over the canvas) -->
+    <header id="hud">
+      <h1>&#10022; MY POKEAGENTS &#10022;</h1>
+      <p id="hint">A living pixel town. Click an agent to meet it.</p>
+    </header>
+
+    <!-- Real-time sun/moon clock (click to preview other times of day) -->
+    <div id="clock" title="Click to preview sunrise / day / sunset / night">
+      <span id="clockIcon">&#9728;</span><span id="clockText">--:--</span>
+    </div>
+
+    <!-- Agent hotbar: click a face to jump to them (scroll for more) -->
+    <div id="hotbar" title="Click a face to find them"></div>
+
+    <!-- Town event log -->
+    <div id="eventlog"></div>
+
+    <!-- Area navigation: town is the hub — roads lead east, west and south -->
+    <div id="areaNav">
+      <button id="navE">EAST ROUTE &#9654;</button>
+      <button id="navW">&#9664; DEEPWOOD</button>
+      <button id="navS">LAKESHORE &#9660;</button>
+      <button id="navN">&#9650; POKETOWN</button>
+    </div>
+
+    <!-- Spawn buttons + the skill codex -->
+    <div id="spawnbar" title="Spawn things into the current area">
+      <button id="sheetBtn" title="Every hero's class, skill tree and abilities">&#128220; SKILLS</button>
+      <button id="spawnEnemyBtn">&#9760; MONSTER</button>
+      <button id="spawnFolkBtn">&#9786; TRAVELLER</button>
+    </div>
+
+    <div id="legend">
+      <span><i class="dot active"></i> Active</span>
+      <span><i class="dot wild"></i> Wildlife</span>
+      <span><i class="dot danger"></i> Night danger</span>
+    </div>
+  </div>
+
+  <!-- Interaction panel (hidden until an agent is clicked) -->
+  <!-- Skill detail popup: click any node in a skill tree -->
+  <div id="skillpop" class="hidden">
+    <div id="skillpopCard">
+      <button id="skillpopClose" aria-label="Close">&#10005;</button>
+      <div id="skillpopBody"></div>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden">
+    <div id="panel" role="dialog" aria-modal="true">
+      <button id="closeBtn" aria-label="Close">&#10005;</button>
+      <div id="panelBody"><!-- filled in by game.js --></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
