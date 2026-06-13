@@ -377,11 +377,11 @@
   function miniDef(file, opts) {
     return Object.assign({ img: img("mini/" + file), fw: 32, fh: 32, idleN: 4, walkN: 6, idleRow: 0, walkRow: 1, foot: 30, scale: 1 }, opts || {});
   }
-  const MINI_BY_AGENT = {   // every hero, reborn in Minifolk
+  const MINI_BY_AGENT = {   // every hero, reborn in Minifolk — the OCs wear MARK'S designs
     claude: () => miniDef("SwordMan.png"),
-    averis: () => miniDef("ArchMage.png"),
-    sunbeam: () => miniDef("Princess.png"),
-    yenna: () => miniDef("HalberdMan.png"),
+    averis: () => miniDef("AverisOC.png"),    // deadpan devil-boy: horns, red vest, gold-trimmed coat
+    sunbeam: () => miniDef("SuniOC.png"),     // the little sunbeam: golden waves, cream & gold
+    yenna: () => miniDef("YennaOC.png"),      // punk wolf girl: fur-collar jacket, ripped jeans, THE tail
     atlas: () => miniDef("Worker.png"),
   };
   const MINI_VILLAGERS = ["VillagerWoman.png", "VillagerMan.png", "OldWoman.png", "OldMan.png", "Peasant.png", "NobleWoman.png", "NobleMan.png", "Queen.png"];
@@ -1332,7 +1332,7 @@
       sprite: { rows: YENNA, pal: YENNA_PAL, eyes: YENNA_EYES, eyeCover: "#c98e58" },
       personality: "Wolf guardian", traits: ["brave", "loyal"],
       cls: "Beast Warrior", dnd: { str: 16, dex: 13, con: 18, int: 9, wis: 11, cha: 12 }, dmgDie: 10,
-      blurb: "A tall silver-maned wolf warrior — eyepatch, red choker, fur-trimmed jacket, her mother's axe. Calls spirit wolves to the hunt, stands guard while Atlas works, and patrols the town when all is well." },
+      blurb: "A tall wild-maned wolf girl — leather jacket with a grey fur collar, ripped jeans, one ENORMOUS tail, and her mother's axe. Calls spirit wolves to the hunt, stands guard while Atlas works, and patrols the town when all is well." },
     { id: "atlas", name: "Atlas", active: true, x: 368, y: 222,
       sprite: { rows: ATLAS, pal: ATLAS_PAL, eyes: ATLAS_EYES, eyeCover: "#e8be94" },
       personality: "Town builder", traits: ["builder", "loyal", "farmer"],
@@ -6397,7 +6397,7 @@
         if (/help|what can you do|can you do/.test(t)) return "I'm in demo mode with scripted replies. Wire me to the real Claude API and I'll actually think — there's a note in game.js.";
         if (/averis|sunbeam|suni|character|\boc\b/.test(t)) return "Averis and Suni are Mark's original characters. He hunts and slings fireballs; she farms, cooks — and smites monsters with holy light from her doorstep.";
         if (/need|sleep|tired|sims|stat/.test(t)) return "We run on health, hunger, energy and mood. When one dips we deal with it — eat, rest, or find a friend. Very Sims of us.";
-        if (/wake|activate|turn on|dormant|yenna|atlas/.test(t)) return "Everyone's awake these days! Atlas rebuilds whatever the monsters smash, and Yenna — the silver wolf with the eyepatch — guards him while he works, then patrols the bounds. Her wolves are friendly. Probably.";
+        if (/wake|activate|turn on|dormant|yenna|atlas/.test(t)) return "Everyone's awake these days! Atlas rebuilds whatever the monsters smash, and Yenna — the wolf girl with the enormous tail — guards him while he works, then patrols the bounds. Her wolves are friendly. Probably.";
         if (/heal|tree|rest|recover/.test(t)) return "The great Healing Tree north-east of the crossroads is where we recover now — rest under its blossoms and you can literally see the healing sparkle. Beats a stuffy house.";
         if (/frog/.test(t)) return "Averis's frog adopted the whole town. Hops after us everywhere — and if a monster's on its last legs, the frog just... eats it. Whole. We don't ask questions.";
         if (/time|clock|day|sunset|sunrise/.test(t)) return "The town follows your real clock! Click the clock top-right to preview sunrise, day, sunset or night.";
@@ -6457,7 +6457,8 @@
         if (/zombie|demon|monster|night|scared/.test(t)) return "Scared? *bares teeth in what might be a smile* Night is when the work gets interesting.";
         if (/how are you|feel|tired|hungry/.test(t)) return "Fed, rested, restless. A quiet day dulls the claws. Hoping something stupid wanders out of the forest.";
         if (/eye|patch|scar/.test(t)) return "The patch? A story for another fire. The eye underneath still works... on the things that matter.";
-        if (/mark|who made|drew|design/.test(t)) return "The maker gave me the silver mane and the marked eyepatch. Good eye. The fangs were my idea.";
+        if (/mark|who made|drew|design/.test(t)) return "The maker gave me the wild mane, the jacket, and this magnificent tail. Good eye. The fangs were my idea.";
+        if (/tail/.test(t)) return "*the tail swishes, knocking a cup off the table* ...It has a mind of its own. We've made peace with that.";
         if (/bye|see ya|goodbye|later/.test(t)) return "Walk safe. If something follows you... it won't for long.";
         return "*flicks an ear* Words are small. Ask about the pack, the axe, or who I guard.";
       }
