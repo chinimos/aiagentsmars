@@ -141,6 +141,16 @@ head dragging a licking golden-to-smoke tail. Ice mages loose a **swarm of
 six sleek frost darts** per volley. And the town rebuilds FAST — Atlas drops
 everything for a broken roof and hammers it whole in seconds.
 
+**The monster roster grew teeth (v16):** orcs are properly BIG now (scaled
+to loom over the heroes), every orc rolls its own shade of mean, and new
+threats prowl the night — the hulking **Brute** (slow, dark, 120 HP of bad
+news), charging **wild boars** and fast **feral wolf packs** wearing the
+forest-animal sheets at threat scale. And Atlas got the ability he was built
+for: **Goblin Toss** — he grabs the nearest monster by the scruff, winds up,
+and HURLS it in an arc at its friends; everyone involved in the landing
+takes damage and sees stars. Rank it up for *Bowling Ball* splash and the
+*Fastball Special*.
+
 **Combat bleeds now:** every solid hit sprays **blood droplets** and knocks
 **pixel chips off the victim** in their own colours, tumbling under gravity.
 And **Suni got a holy upgrade**: her smite opens with **one colossal beam,

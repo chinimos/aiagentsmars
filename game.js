@@ -1335,7 +1335,7 @@
       blurb: "A tall wild-maned wolf girl — leather jacket with a grey fur collar, ripped jeans, one ENORMOUS tail, and her mother's axe. Calls spirit wolves to the hunt, stands guard while Atlas works, and patrols the town when all is well." },
     { id: "atlas", name: "Atlas", active: true, x: 368, y: 222,
       sprite: { rows: ATLAS, pal: ATLAS_PAL, eyes: ATLAS_EYES, eyeCover: "#e8be94" },
-      personality: "Town builder", traits: ["builder", "loyal", "farmer"],
+      personality: "Town builder", traits: ["builder", "brave", "loyal", "farmer"],   // big, buff, and not hiding from anything anymore
       cls: "Builder", dnd: { str: 14, dex: 8, con: 14, int: 13, wis: 11, cha: 10 }, dmgDie: 6,
       blurb: "The town builder — first on the scene with a hammer when anything falls. Yenna watches his back while he works." },
   ];
@@ -2117,13 +2117,32 @@
      14. Night enemies — D&D stat blocks, knockback, hit-flash. They creep out
          of the dark forest edges (both areas) and burn away at sunrise.
      ========================================================================== */
+  // the monster roster: orc-skinned classics, a hulking brute variant, and
+  // feral beasts from the forest packs. art: "orc" = the Tiny RPG strips
+  // (scale/filter per kind), "mini" = a Minifolk animal sheet.
   const ENEMY_TYPES = {
-    zombie: { hp: 62, speed: 11, cd: 1.3, ac: 8,  atk: 1, die: 6, dmgBonus: 1, initMod: -1 },
-    demon:  { hp: 44, speed: 24, cd: 0.9, ac: 13, atk: 4, die: 8, dmgBonus: 2, initMod: 3 },
+    zombie: { hp: 62, speed: 11, cd: 1.3, ac: 8,  atk: 1, die: 6, dmgBonus: 1, initMod: -1, art: "orc",  scale: 0.58, tall: 26 },
+    demon:  { hp: 44, speed: 24, cd: 0.9, ac: 13, atk: 4, die: 8, dmgBonus: 2, initMod: 3,  art: "orc",  scale: 0.58, tall: 26, filter: "hue-rotate(-72deg) saturate(1.6) brightness(0.92)" },
+    brute:  { hp: 120, speed: 16, cd: 2.1, ac: 11, atk: 4, die: 10, dmgBonus: 3, initMod: -2, art: "orc", scale: 0.8, tall: 36, filter: "saturate(0.45) brightness(0.7)" },
+    boar:   { hp: 46, speed: 46, cd: 1.6, ac: 12, atk: 3, die: 6, dmgBonus: 2, initMod: 2,  art: "mini", sheet: "Boar.png", scale: 1.5, tall: 18 },
+    wolf:   { hp: 38, speed: 56, cd: 1.1, ac: 13, atk: 4, die: 4, dmgBonus: 1, initMod: 4,  art: "mini", sheet: "Wolf.png", scale: 1.4, tall: 17, filter: "sepia(0.5) hue-rotate(-18deg) saturate(1.5) brightness(0.85)" },
   };
+  const ENEMY_MINI = {};   // lazy miniDefs for beast monsters
+  function enemyMini(def) {
+    if (!ENEMY_MINI[def.sheet]) ENEMY_MINI[def.sheet] = miniDef(def.sheet, { walkN: 4, scale: def.scale });
+    return ENEMY_MINI[def.sheet];
+  }
   const enemies = [];
-  function spawnEnemy(areaKey, pt, manual) {
-    const kind = (danger >= 2 && Math.random() < 0.3) ? "demon" : "zombie";
+  function pickEnemyKind() {
+    const r = Math.random();
+    if (danger >= 2 && r < 0.14) return "demon";
+    if (danger >= 2 && r < 0.26) return "brute";
+    if (r < 0.42) return "wolf";
+    if (r < 0.56) return "boar";
+    return "zombie";
+  }
+  function spawnEnemy(areaKey, pt, manual, kindOverride) {
+    const kind = kindOverride || pickEnemyKind();
     const r = Math.random();
     const area = areaKey || (r < 0.4 ? "town" : r < 0.68 ? "route" : r < 0.92 ? "deepwood" : "lake");
     const s = pt || pick(AREAS[area].enemySpawns);
@@ -2134,7 +2153,8 @@
       x: s[0] + (Math.random() * 18 - 9), y: s[1] + (Math.random() * 12 - 6),
       cd: 1 + Math.random(), cdScaled: def.cd * clamp(1.25 - init * 0.02, 0.7, 1.3),
       init, burnT: 0, disT: 0, facing: 1, phase: Math.random() * 6.28,
-      kbx: 0, kby: 0, flashT: 0, lungeT: 0,
+      kbx: 0, kby: 0, flashT: 0, lungeT: 0, thrownT: 0,
+      jit: kind === "zombie" ? Math.round(Math.random() * 44 - 22) : 0,   // each orc its own shade of mean
       manual: !!manual,   // button-summoned monsters don't fear the daylight
     });
   }
@@ -2157,7 +2177,7 @@
     floatText(e.x, e.y - 16, (crit ? "CRIT -" : "-") + dmg, crit ? "#ffd166" : classColor(src), e.area);
     addPart("slash", e.x, e.y - 8, e.area);
     sparkBurst(e.x, e.y - 8, e.area);
-    gore(e.x, e.y - 6, e.area, e.kind === "demon" ? "#7e3a4a" : "#6a7a4a", crit ? 10 : 5);
+    gore(e.x, e.y - 6, e.area, { demon: "#7e3a4a", brute: "#5a5a52", boar: "#6a4a32", wolf: "#5e4634" }[e.kind] || "#6a7a4a", crit ? 10 : 5);
     // the asset-pack hit flashes: every blow lands with a real animation
     if (fx === "slash" || fx === "wolf") playFX("slash", e.x, e.y - 10, e.area, crit ? 0.9 : 0.65, src && src.x > e.x);
     else if (fx === "fireball") playFX("impact_red", e.x, e.y - 8, e.area, crit ? 1.4 : 1);
@@ -2379,6 +2399,57 @@
     }
     if (hits >= 3) logEvent(a.name + "'s whirlwind scythes through " + hits + " monsters!");
   }
+  // Goblin Toss: grab the nearest monster and HURL it at its friends.
+  // While airborne the victim is pure physics — it lands on someone, hard.
+  function castGoblinToss(a, e, r) {
+    a.lungeT = 0.2;
+    let target = null, bd = 140;   // who do we throw it AT?
+    for (const o of enemies) {
+      if (o === e || o.hp <= 0 || o.burnT > 0 || o.disT > 0 || o.area !== a.area || o.thrownT > 0) continue;
+      const d = dist(e.x, e.y, o.x, o.y);
+      if (d < bd) { bd = d; target = o; }
+    }
+    e.thrownT = 0.55; e.thrownDur = 0.55;
+    e.thrownFrom = { x: e.x, y: e.y };
+    e.thrownTo = target ? { x: target.x, y: target.y } : { x: clamp(a.x + a.facing * (44 + r * 8), 14, VW - 14), y: clamp(a.y + (Math.random() * 24 - 12), 30, VH - 10) };
+    e.thrownBy = a; e.thrownRank = r; e.thrownVictim = target;
+    e.groundY = e.y; e.dazzleT = 0; e.stunT = 0; e.kbx = 0; e.kby = 0;
+    floatText(a.x, a.y - a.sh - 10, "HRRAAGH!", "#ffd166", a.area);
+    if (Math.random() < 0.6) say(a, pick(["Up you go!", "SPECIAL DELIVERY!", "Mind your friend there!", "Catch!"]));
+  }
+  function updateThrown(dt) {
+    for (const e of enemies) {
+      if (!(e.thrownT > 0)) continue;
+      if (e.hp <= 0 || e.burnT > 0) { e.thrownT = 0; continue; }   // died mid-air: drop the physics
+      e.thrownT -= dt;
+      const pr = clamp(1 - e.thrownT / e.thrownDur, 0, 1);
+      const fr = e.thrownFrom, to = e.thrownTo;
+      e.groundY = fr.y + (to.y - fr.y) * pr;
+      e.x = fr.x + (to.x - fr.x) * pr;
+      e.y = e.groundY - Math.sin(pr * Math.PI) * 30;   // a proper arc
+      e.facing = to.x < fr.x ? -1 : 1;
+      if (Math.random() < dt * 12) addPart("poof", e.x, e.y + 4, e.area);
+      if (e.thrownT <= 0) {   // LANDING: everyone involved regrets this
+        e.y = e.groundY;
+        const a = e.thrownBy, r = e.thrownRank || 1;
+        const dmg = 10 + r * 5 + Math.max(0, mod(a.dnd.str)) + (a.stratT > 0 ? 2 : 0);
+        playFX("impact_smash", e.x, e.y - 6, e.area, 0.9 + r * 0.12);
+        parts.push({ type: "wave", x: e.x, y: e.y, area: e.area, life: 0.4, maxLife: 0.4, vx: 0, vy: 0, sp: 14 + r * 2 });
+        for (let k = 0; k < 10 + r * 2; k++) addPart("poof", e.x + (Math.random() * 26 - 13), e.y - Math.random() * 6, e.area);
+        hurtEnemy(e, dmg, a, false, "slash");
+        if (e.hp > 0) { e.stunT = Math.max(e.stunT || 0, r >= 5 ? 1.4 : 0.8); }
+        const splash = r >= 3 ? 30 : 22;
+        for (const o of enemies) {
+          if (o === e || o.hp <= 0 || o.burnT > 0 || o.disT > 0 || o.area !== e.area || o.thrownT > 0) continue;
+          if (dist(o.x, o.y, e.x, e.y) > splash) continue;
+          hurtEnemy(o, o === e.thrownVictim ? dmg : Math.ceil(dmg * 0.5), a, false, "slash");
+          if (o.hp > 0) o.stunT = Math.max(o.stunT || 0, r >= 5 ? 1.2 : 0.7);
+        }
+        logEvent(a.name + " hurled a " + e.kind + " across the field!");
+      }
+    }
+  }
+
   // Hammer Bash: one skull, one hammer, stun stars
   function castHammerBash(a, e, r) {
     a.facing = e.x < a.x ? -1 : 1;
@@ -2916,6 +2987,7 @@
     } else if (enemies.some(e => e.burnT <= 0 && !e.manual)) burnAll();
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i];
+      if (e.thrownT > 0) continue;   // airborne courtesy of Atlas: physics only, no thoughts
       if (e.disT > 0) {   // smitten: dissolving into rising light
         e.disT -= dt;
         if (Math.random() < dt * 30) parts.push({ type: "lightmote", x: e.x + (Math.random() * 12 - 6), y: e.y - Math.random() * 14, area: e.area, life: 0.7, maxLife: 0.7, vx: (Math.random() - 0.5) * 6, vy: -18 - Math.random() * 8 });
@@ -3177,6 +3249,14 @@
       cd: 75, dmgText: () => "allies +1 to hit/+2 damage, enemies marked 10s",
     },
     /* ---------------- FIGHTER · Earthshaper (Atlas) ---------------- */
+    goblin_toss: {
+      name: "Goblin Toss", cls: "fighter", kind: "active", icon: "&#128170;",
+      desc: "Atlas grabs the nearest monster by the scruff and HURLS it at its friends. Builder strength, weaponized.",
+      scale: "STR", cd: 10, mana: 0, range: [0, 26], charge: 0.9, pause: 0.8,
+      dmgText: r => (10 + r * 5) + " + STR to the thrown one AND whatever it lands on" + (r >= 3 ? ", wide splash" : ""),
+      rankNotes: ["a good heave", "harder throws", "BOWLING BALL — wide splash on landing", "harder still", "FASTBALL SPECIAL — long stuns for everyone involved"],
+      evolutions: [{ at: 3, name: "Bowling Ball" }, { at: 5, name: "Fastball Special" }],
+    },
     hammer_bash: {
       name: "Hammer Bash", cls: "fighter", kind: "active", icon: "&#128296;",
       desc: "The builder's hammer, applied to a monster's skull. Leaves them seeing stun stars.",
@@ -3316,9 +3396,9 @@
     yenna: { cls: "druid", spec: "Beastmaster", actives: ["summon_wolves", "savage_maul"], passive: "thick_hide", ultimate: "wild_hunt",
       innate: "Guardian Instinct — she shields the builder and walks the bounds.",
       order: ["savage_maul", "summon_wolves", "savage_maul", "thick_hide", "summon_wolves", "savage_maul", "thick_hide", "summon_wolves", "savage_maul", "summon_wolves", "savage_maul", "thick_hide", "thick_hide", "thick_hide"] },
-    atlas: { cls: "fighter", spec: "Earthshaper", actives: ["hammer_bash", "earthshatter"], passive: "stoneskin", ultimate: "sanctuary_walls",
+    atlas: { cls: "fighter", spec: "Earthshaper", actives: ["goblin_toss", "hammer_bash", "earthshatter"], passive: "stoneskin", ultimate: "sanctuary_walls",
       innate: "Master Builder — repairs nearly three times faster than anyone.",
-      order: ["hammer_bash", "earthshatter", "hammer_bash", "stoneskin", "earthshatter", "hammer_bash", "stoneskin", "earthshatter", "hammer_bash", "earthshatter", "hammer_bash", "stoneskin", "stoneskin", "stoneskin"] },
+      order: ["goblin_toss", "hammer_bash", "goblin_toss", "stoneskin", "earthshatter", "goblin_toss", "hammer_bash", "stoneskin", "earthshatter", "goblin_toss", "hammer_bash", "goblin_toss", "earthshatter", "hammer_bash", "earthshatter", "hammer_bash", "earthshatter", "stoneskin", "stoneskin", "stoneskin"] },
   };
   // the townsfolk get trees too — shared, humble, no ultimates
   const NPC_ABILITIES = {
@@ -3369,8 +3449,8 @@
     if (!ab) return { charge: 1, cd: 5, mana: 0, min: 0, max: 999, pause: 1, name: key };
     return { charge: ab.charge || 1, cd: ab.cd, mana: ab.mana || 0, min: ab.range ? ab.range[0] : 0, max: ab.range ? ab.range[1] : 999, pause: ab.pause || 1, name: ab.name };
   }
-  const MELEE_CHARGE = { slash: 1, heavy_strike: 1, savage_maul: 1, hammer_bash: 1, whirlwind: 1, earthshatter: 1 };
-  const CHARGE_LOOK = { heavy_strike: "slash", savage_maul: "slash", hammer_bash: "slash", whirlwind: "slash", earthshatter: "slash", flame_wave: "fireball", solar_smite: "smite", summon_wolves: "wolves", summon_imps: "fireball" };
+  const MELEE_CHARGE = { slash: 1, heavy_strike: 1, savage_maul: 1, hammer_bash: 1, whirlwind: 1, earthshatter: 1, goblin_toss: 1 };
+  const CHARGE_LOOK = { heavy_strike: "slash", savage_maul: "slash", hammer_bash: "slash", whirlwind: "slash", earthshatter: "slash", goblin_toss: "slash", flame_wave: "fireball", solar_smite: "smite", summon_wolves: "wolves", summon_imps: "fireball" };
 
   /* ---- XP, levels and auto-spent talent points --------------------------- */
   const MAX_LEVEL = 10;
@@ -3447,6 +3527,7 @@
       // the hero kit — every cast carries its rank
       case "heavy_strike": castSmash(a, e, "heavy_strike", r); break;
       case "savage_maul": castSmash(a, e, "savage_maul", r); break;
+      case "goblin_toss": castGoblinToss(a, e, r); break;
       case "whirlwind": castWhirlwind(a, r); break;
       case "hammer_bash": castHammerBash(a, e, r); break;
       case "earthshatter": castEarthshatter(a, r); break;
@@ -4803,6 +4884,7 @@
     updatePlots(dt);
     updateAnimals(dt);
     updateEnemies(dt, t);
+    updateThrown(dt);
     updateProjectiles(dt);
     updateSmites(dt);
     updateFlameWaves(dt);
@@ -5239,34 +5321,57 @@
     drawGrassCover(an);   // rabbits all but vanish in the tall grass
   }
 
-  // monsters wear the Tiny RPG Orc now: real idle/walk/attack/death animation
-  // strips (100×100 frames, drawn at 0.42). Demons are the same beast,
-  // hue-shifted hellward. Falls back to the old pixel grids until images load.
-  const ORC_SCALE = 0.42, ORC_FOOT = 66;
+  // monsters wear the Tiny RPG Orc strips or a Minifolk beast sheet, scaled
+  // per kind so they stand RELATIVE to the heroes (brutes loom, wolves prowl).
+  const ORC_FOOT = 66;
+  function enemyFilter(e, extra) {
+    let f = e.def.filter || "";
+    if (e.jit) f += " hue-rotate(" + e.jit + "deg)";
+    if (extra) f += " " + extra;
+    return f.trim();
+  }
   function drawOrcFrame(e, t, strip, frame, filter, alpha) {
     const im = strip.img;
     if (!ready(im)) return false;
     const fw = 100, fh = 100;
-    const dw = fw * ORC_SCALE, dh = fh * ORC_SCALE;
+    const sc = e.def.scale || 0.58;
+    const dw = fw * sc, dh = fh * sc;
     const lunge = e.lungeT > 0 ? Math.round(Math.sin((0.18 - e.lungeT) / 0.18 * Math.PI) * 3) * e.facing : 0;
-    const dx = Math.round(e.x - dw / 2) + lunge, dy = Math.round(e.y - ORC_FOOT * ORC_SCALE);
+    const dx = Math.round(e.x - dw / 2) + lunge, dy = Math.round(e.y - ORC_FOOT * sc);
     ctx.save();
     if (alpha !== undefined) ctx.globalAlpha = alpha;
-    let f = filter || "";
-    if (e.kind === "demon") f = "hue-rotate(-72deg) saturate(1.6) brightness(0.92) " + f;
-    if (f) ctx.filter = f.trim();
+    const f = enemyFilter(e, filter);
+    if (f) ctx.filter = f;
     if (e.facing < 0) { ctx.translate(dx + dw, dy); ctx.scale(-1, 1); ctx.drawImage(im, frame * fw, 0, fw, fh, 0, 0, dw, dh); }
     else ctx.drawImage(im, frame * fw, 0, fw, fh, dx, dy, dw, dh);
     ctx.restore();
     return true;
   }
+  // feral beasts (boar, wolf) ride the Minifolk animal sheets at threat scale
+  function drawBeastFrame(e, t, filter, alpha) {
+    const m = enemyMini(e.def);
+    if (!ready(m.img)) return false;
+    const moving = Math.abs(e.kbx) < 4 && !(e.dazzleT > 0) && !(e.stunT > 0);
+    const lunge = e.lungeT > 0 ? Math.round(Math.sin((0.18 - e.lungeT) / 0.18 * Math.PI) * 4) * e.facing : 0;
+    const f = moving ? Math.floor((t / 110 + e.phase * 3) % m.walkN) : Math.floor((t / 260 + e.phase * 3) % m.idleN);
+    ctx.save();
+    if (alpha !== undefined) ctx.globalAlpha = alpha;
+    const flt = enemyFilter(e, filter);
+    if (flt) ctx.filter = flt;
+    drawMini(m, e.x + lunge, e.y, e.facing, f, moving ? m.walkRow : m.idleRow);
+    ctx.restore();
+    return true;
+  }
   function drawEnemy(e, t) {
-    const orcReady = ready(ORC.idle.img);
-    e.animT = (e.animT || 0);
+    const beast = e.def.art === "mini";
+    const artReady = beast ? ready(enemyMini(e.def).img) : ready(ORC.idle.img);
+    const flying = e.thrownT > 0;   // mid-Goblin-Toss: airborne, flailing
     if (e.disT > 0) {   // disintegrating in a blaze of light
       const pr = e.disT / 0.9;
-      if (!orcReady || !drawOrcFrame(e, t, ORC.death, Math.min(3, Math.floor((1 - pr) * 4)), "brightness(2.4)", pr)) {
-        const spr = e.kind === "zombie" ? zombSpr : demonSpr, white = e.kind === "zombie" ? zombWhite : demonWhite;
+      const drew = beast ? drawBeastFrame(e, t, "brightness(2.4)", pr)
+        : (artReady && drawOrcFrame(e, t, ORC.death, Math.min(3, Math.floor((1 - pr) * 4)), "brightness(2.4)", pr));
+      if (!drew) {
+        const spr = e.kind === "demon" ? demonSpr : zombSpr, white = e.kind === "demon" ? demonWhite : zombWhite;
         const ddx = Math.round(e.x - spr.width / 2), ddy = Math.round(e.y - spr.height);
         ctx.globalAlpha = pr * 0.8; ctx.drawImage(spr, ddx, ddy);
         ctx.globalAlpha = pr; ctx.drawImage(white, ddx, ddy);
@@ -5280,20 +5385,27 @@
       ctx.globalAlpha = 1;
       if (Math.random() < 0.4) { ctx.fillStyle = Math.random() < 0.5 ? "#e8702a" : "#f2b441"; ctx.fillRect(Math.round(e.x) + ((Math.random() * 10 | 0) - 5), Math.round(e.y) - 1, 1, 1); }
     }
-    drawShadow(e.x, e.y, 12);
-    let drewMini = false;
-    if (orcReady) {
-      let strip, frame;
-      if (e.burnT > 0) { strip = ORC.death; frame = Math.min(3, Math.floor((1 - e.burnT / 0.9) * 4)); }
-      else if (e.lungeT > 0) { strip = ORC.attack; frame = Math.min(5, Math.floor((0.18 - e.lungeT) / 0.18 * 6)); }
-      else if (Math.abs(e.kbx) > 4 || e.dazzleT > 0 || e.stunT > 0) { strip = ORC.idle; frame = Math.floor((t / 240 + e.phase) % 6); }
-      else { strip = ORC.walk; frame = Math.floor((t / 110 + e.phase * 4) % 8); }
-      const scorchF = e.scorchT > 0 && e.burnT <= 0 ? "brightness(0.55) sepia(0.4) " : "";
-      drewMini = drawOrcFrame(e, t, strip, frame, scorchF, e.burnT > 0 ? Math.max(0, e.burnT / 0.9) : undefined);
-      if (drewMini && e.flashT > 0 && e.burnT <= 0) drawOrcFrame(e, t, strip, frame, "brightness(2.6)", clamp(e.flashT / 0.12, 0, 1) * 0.8);
+    if (flying) drawShadow(e.x, e.groundY || e.y, 10);   // the shadow stays on the ground below
+    else drawShadow(e.x, e.y, e.kind === "brute" ? 16 : 12);
+    let drew = false;
+    if (artReady) {
+      const scorchF = e.scorchT > 0 && e.burnT <= 0 ? "brightness(0.55) sepia(0.4)" : "";
+      if (beast) {
+        drew = drawBeastFrame(e, t, scorchF, e.burnT > 0 ? Math.max(0, e.burnT / 0.9) : undefined);
+        if (drew && e.flashT > 0 && e.burnT <= 0) drawBeastFrame(e, t, "brightness(2.6)", clamp(e.flashT / 0.12, 0, 1) * 0.8);
+      } else {
+        let strip, frame;
+        if (e.burnT > 0) { strip = ORC.death; frame = Math.min(3, Math.floor((1 - e.burnT / 0.9) * 4)); }
+        else if (flying) { strip = ORC.idle; frame = Math.floor(t / 70) % 6; }   // flailing fast mid-air
+        else if (e.lungeT > 0) { strip = ORC.attack; frame = Math.min(5, Math.floor((0.18 - e.lungeT) / 0.18 * 6)); }
+        else if (Math.abs(e.kbx) > 4 || e.dazzleT > 0 || e.stunT > 0) { strip = ORC.idle; frame = Math.floor((t / 240 + e.phase) % 6); }
+        else { strip = ORC.walk; frame = Math.floor((t / 110 + e.phase * 4) % 8); }
+        drew = drawOrcFrame(e, t, strip, frame, scorchF, e.burnT > 0 ? Math.max(0, e.burnT / 0.9) : undefined);
+        if (drew && e.flashT > 0 && e.burnT <= 0) drawOrcFrame(e, t, strip, frame, "brightness(2.6)", clamp(e.flashT / 0.12, 0, 1) * 0.8);
+      }
     }
-    if (!drewMini) {   // assets still loading: the old pixel-grid monsters
-      const spr = e.kind === "zombie" ? zombSpr : demonSpr, white = e.kind === "zombie" ? zombWhite : demonWhite;
+    if (!drew) {   // assets still loading: the old pixel-grid monsters
+      const spr = e.kind === "demon" ? demonSpr : zombSpr, white = e.kind === "demon" ? demonWhite : zombWhite;
       const bob = e.kind === "demon" ? Math.round(Math.sin(t / 150 + e.phase) * 2) - 2 : Math.round(Math.sin(e.phase) * 1);
       const lunge = e.lungeT > 0 ? Math.round(Math.sin((0.18 - e.lungeT) / 0.18 * Math.PI) * 3) * e.facing : 0;
       const dx = Math.round(e.x - spr.width / 2) + lunge, dy = Math.round(e.y - spr.height + bob);
@@ -5308,7 +5420,7 @@
         ctx.globalAlpha = 1;
       }
     }
-    const topY = Math.round(e.y - ORC_FOOT * ORC_SCALE);
+    const topY = Math.round(e.y - (e.def.tall || 26));
     if (e.slowT > 0 && e.burnT <= 0) {   // frostbitten: ice crystals cling to it
       ctx.fillStyle = Math.random() < 0.5 ? "#bfe6f5" : "#e8f6ff";
       ctx.fillRect(Math.round(e.x) - 6 + ((t / 90 | 0) % 12), topY + 8 + ((t / 130 | 0) % 12), 1, 1);
@@ -6568,7 +6680,7 @@
   let debugT = 0;
   window.poke = {
     agents, animals, enemies, plots, bushes, villagers, travellers, Time, Weather, AREAS,
-    shacks, buildings, impMinions, wolves, fxAnims,
+    shacks, buildings, impMinions, wolves, fxAnims, spawnEnemy,
     get imp() { return imp; },
     get viewArea() { return viewArea; },
     go: a => setViewArea(a),
