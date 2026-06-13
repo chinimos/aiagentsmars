@@ -382,7 +382,7 @@
     averis: () => miniDef("AverisOC.png"),    // deadpan devil-boy: horns, red vest, gold-trimmed coat
     sunbeam: () => miniDef("SuniOC.png"),     // the little sunbeam: golden waves, cream & gold
     yenna: () => miniDef("YennaOC.png"),      // punk wolf girl: fur-collar jacket, ripped jeans, THE tail
-    atlas: () => miniDef("Worker.png"),
+    atlas: () => miniDef("AtlasOC.png"),      // the builder: BIG, buff, boulder shoulders, gold tank
   };
   const MINI_VILLAGERS = ["VillagerWoman.png", "VillagerMan.png", "OldWoman.png", "OldMan.png", "Peasant.png", "NobleWoman.png", "NobleMan.png", "Queen.png"];
   const MINI_KNIGHTS = ["ShieldMan.png", "SwordMan.png", "SpearMan.png"];
