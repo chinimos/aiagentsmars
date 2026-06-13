@@ -1,6 +1,7 @@
 # Generates Minifolk-style 192x64 sprite sheets (row 0: idle x4, row 1: walk x6)
 # for Mark's OCs from pixel grids. Run: powershell -File make-oc-sheets.ps1
-# v2: smaller bodies (Minifolk scale) + 1x2 vertical-line eyes on everyone.
+# v3: chibi faces — hair wraps a small rounded face window (no more "TV face"),
+# bangs over the brow, blush pixels, 1x2 line eyes with shaded bottoms.
 Add-Type -AssemblyName System.Drawing
 
 function New-Sheet {
@@ -53,12 +54,13 @@ function NewPal($pairs) {
   return $d
 }
 
-# ============ AVERIS — deadpan devil-boy: dark curls, red horns (gold band),
-# ============ black coat w/ gold trim, red vest, red gloves, black boots
+# ============ AVERIS — deadpan devil-boy: curly dark hair wrapping a small
+# ============ chibi face, red horns (gold band), blush swirls, red vest,
+# ============ gold-trimmed black coat, red gloves and belt, black boots
 $avPal = NewPal @(
   'k','#1a1014', 'H','#2e2228', 'h','#453640',
   'R','#8e2f3a', 'r','#6a212c', 'G','#d9a441',
-  'S','#d8a98a', 's','#b87f63', 'e','#a83232', 'x','#6e1d26',
+  'S','#d8a98a', 's','#c98a7e', 'n','#b87f63', 'e','#a83232', 'x','#6e1d26',
   'Q','#26202a', 'q','#3a3340',
   'V','#a8323a', 'v','#7e242c', 'T','#16121a',
   'P','#4a3f44', 'p','#382f33', 'B','#16121a', 'g','#a8323a'
@@ -67,14 +69,14 @@ $avStand = @"
 .....kkkkkk.....
 ...kkHHHHHHkk...
 ..kHHHHHHHHHHk..
-.kRkHHhHHhHHkRk.
-kRGkHHHHHHHHkRRk
-.kkHHHHHHHHHHkk.
-..kHSSSSSSSSHk..
-..kSSSeSSeSSSk..
-..kSSSxSSxSSSk..
-..kSSSssSSSSk...
-...kkkkkkkkkk...
+.kRkHHHHHHHHkRk.
+kRGkHHhHHhHHkRRk
+.kkHHHkkkkHHHkk.
+..kHkSSSSSSkHk..
+..kHkSeSSeSkHk..
+..kHksxSSxskHk..
+...kkSSnnSSkk...
+....kkkkkkkk....
 ...kQkVVVVkQk...
 ..kQQkVTTVkQQk..
 ..kGQkVVVVkQGk..
@@ -88,14 +90,14 @@ $avStepA = @"
 .....kkkkkk.....
 ...kkHHHHHHkk...
 ..kHHHHHHHHHHk..
-.kRkHHhHHhHHkRk.
-kRGkHHHHHHHHkRRk
-.kkHHHHHHHHHHkk.
-..kHSSSSSSSSHk..
-..kSSSeSSeSSSk..
-..kSSSxSSxSSSk..
-..kSSSssSSSSk...
-...kkkkkkkkkk...
+.kRkHHHHHHHHkRk.
+kRGkHHhHHhHHkRRk
+.kkHHHkkkkHHHkk.
+..kHkSSSSSSkHk..
+..kHkSeSSeSkHk..
+..kHksxSSxskHk..
+...kkSSnnSSkk...
+....kkkkkkkk....
 ...kQkVVVVkQk...
 ..kQQkVTTVkQQk..
 ..kGQkVVVVkQGk..
@@ -109,14 +111,14 @@ $avStepB = @"
 .....kkkkkk.....
 ...kkHHHHHHkk...
 ..kHHHHHHHHHHk..
-.kRkHHhHHhHHkRk.
-kRGkHHHHHHHHkRRk
-.kkHHHHHHHHHHkk.
-..kHSSSSSSSSHk..
-..kSSSeSSeSSSk..
-..kSSSxSSxSSSk..
-..kSSSssSSSSk...
-...kkkkkkkkkk...
+.kRkHHHHHHHHkRk.
+kRGkHHhHHhHHkRRk
+.kkHHHkkkkHHHkk.
+..kHkSSSSSSkHk..
+..kHkSeSSeSkHk..
+..kHksxSSxskHk..
+...kkSSnnSSkk...
+....kkkkkkkk....
 ...kQkVVVVkQk...
 ..kQQkVTTVkQQk..
 ..kGQkVVVVkQGk..
@@ -128,11 +130,12 @@ kRGkHHHHHHHHkRRk
 "@
 New-Sheet -grids @{ stand = $avStand; stepA = $avStepA; stepB = $avStepB } -pal $avPal -outPath 'C:\Users\spenc\Desktop\aiagents\assets\mini\AverisOC.png'
 
-# ============ SUNI — the little sunbeam: golden waves, golden line-eyes,
-# ============ cream dress with gold belt, white cape and boots
+# ============ SUNI — the little sunbeam: huge golden waves wrapping a small
+# ============ chibi face, golden line-eyes, blush, smile, cream dress with
+# ============ gold belt, hair flowing down BESIDE the dress, white boots
 $suPal = NewPal @(
   'k','#3a2e1a', 'Y','#e8c878', 'y','#caa45c', 'o','#f4dfa4',
-  'S','#f6e3cd', 's','#e3bf9d', 'e','#d9912b', 'x','#a86415',
+  'S','#f6e3cd', 's','#f2c4ae', 'n','#e3bf9d', 'e','#d9912b', 'x','#a86415',
   'D','#f2e8d8', 'd','#d9c8ae', 'G','#d9a441',
   'W','#fffaf0', 'B','#efe7d8'
 )
@@ -140,18 +143,18 @@ $suStand = @"
 ....kkkkkkk....
 ..kkYYYYYYYkk..
 .kYoYYYYYoYYk..
-.kYYYYYYYYYYYk.
-.kYSSSSSSSSYk..
-.kYSSeSSeSSYk..
-.kYSSxSSxSSYk..
-.kYSSSssSSSYk..
-.kYYkSSSSkYYk..
-.kYYYkkkkYYYk..
-.kYkWWWWWWkYk..
-.kYkDDGGDDkYk..
-.kykDDDDDDkyk..
+.kYYYyyyyyYYYk.
+.kYYkSSSSSSkYk.
+.kYYkSeSSeSkYk.
+.kYYksxSSxskYk.
+.kYYkSSnnSSkYk.
+.kYYYkkkkkkYYk.
+.kYykWWWWWWkyk.
+.kYykDDGGDDkyk.
+.kYkDDDDDDkYk..
+.kYkDDDDDDkYk..
+.kykDdDDdDkyk..
 ..kDDDDDDDDk...
-..kDdDDDDdDk...
 .kddddddddddk..
 ...kBBk.kBBk...
 ...kkk...kkk...
@@ -160,18 +163,18 @@ $suStepA = @"
 ....kkkkkkk....
 ..kkYYYYYYYkk..
 .kYoYYYYYoYYk..
-.kYYYYYYYYYYYk.
-.kYSSSSSSSSYk..
-.kYSSeSSeSSYk..
-.kYSSxSSxSSYk..
-.kYSSSssSSSYk..
-.kYYkSSSSkYYk..
-.kYYYkkkkYYYk..
-.kYkWWWWWWkYk..
-.kYkDDGGDDkYk..
-.kykDDDDDDkyk..
+.kYYYyyyyyYYYk.
+.kYYkSSSSSSkYk.
+.kYYkSeSSeSkYk.
+.kYYksxSSxskYk.
+.kYYkSSnnSSkYk.
+.kYYYkkkkkkYYk.
+.kYykWWWWWWkyk.
+.kYykDDGGDDkyk.
+.kYkDDDDDDkYk..
+.kYkDDDDDDkYk..
+.kykDdDDdDkyk..
 ..kDDDDDDDDk...
-..kDdDDDDdDk...
 .kddddddddddk..
 ..kBBk...kBBk..
 ..kkk.....kkk..
@@ -180,18 +183,18 @@ $suStepB = @"
 ....kkkkkkk....
 ..kkYYYYYYYkk..
 .kYoYYYYYoYYk..
-.kYYYYYYYYYYYk.
-.kYSSSSSSSSYk..
-.kYSSeSSeSSYk..
-.kYSSxSSxSSYk..
-.kYSSSssSSSYk..
-.kYYkSSSSkYYk..
-.kYYYkkkkYYYk..
-.kYkWWWWWWkYk..
-.kYkDDGGDDkYk..
-.kykDDDDDDkyk..
+.kYYYyyyyyYYYk.
+.kYYkSSSSSSkYk.
+.kYYkSeSSeSkYk.
+.kYYksxSSxskYk.
+.kYYkSSnnSSkYk.
+.kYYYkkkkkkYYk.
+.kYykWWWWWWkyk.
+.kYykDDGGDDkyk.
+.kYkDDDDDDkYk..
+.kYkDDDDDDkYk..
+.kykDdDDdDkyk..
 ..kDDDDDDDDk...
-..kDdDDDDdDk...
 .kddddddddddk..
 ....kBBBBk.....
 ....kkkkk......
